@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Debug — 全キャラ一覧</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', 'Hiragino Sans', sans-serif;
+      font-size: 12px;
+      padding: 16px;
+    }
+    h1 { font-size: 16px; margin-bottom: 16px; color: #adf; }
+    .kind-section {
+      margin-bottom: 24px;
+    }
+    .kind-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: #8cf;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #334;
+      padding-bottom: 4px;
+    }
+    .stage-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .char-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #16213e;
+      border: 1px solid #334;
+      border-radius: 6px;
+      padding: 8px 6px 6px;
+      width: 72px;
+    }
+    .char-card svg {
+      display: block;
+      width: 48px;
+      height: 48px;
+    }
+    .char-card .char-fallback {
+      font-size: 36px;
+      line-height: 48px;
+      text-align: center;
+      width: 48px;
+    }
+    .char-label {
+      margin-top: 5px;
+      font-size: 10px;
+      color: #9ab;
+      text-align: center;
+      word-break: break-all;
+    }
+    .char-key {
+      font-size: 9px;
+      color: #556;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 キャラクター全一覧</h1>
+  <div id="root"></div>
+  <script src="characters.js"></script>
+  <script src="debug.js"></script>
+</body>
+</html>

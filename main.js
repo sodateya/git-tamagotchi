@@ -187,6 +187,19 @@ function createPetWindow() {
   });
 }
 
+function createDebugWindow() {
+  const win = new BrowserWindow({
+    width: 900,
+    height: 700,
+    title: 'Debug — 全キャラ一覧',
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  win.loadFile(path.join(__dirname, 'src', 'debug.html'));
+}
+
 function createSettingsWindow() {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.focus();
@@ -278,6 +291,7 @@ ipcMain.handle('save-config', (_e, cfg) => {
   return true;
 });
 ipcMain.handle('refresh-now', () => refresh());
+ipcMain.handle('open-debug', () => createDebugWindow());
 ipcMain.on('open-external', (_e, url) => shell.openExternal(url));
 
 // ---------- 起動 ----------
