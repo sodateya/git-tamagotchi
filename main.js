@@ -10,7 +10,8 @@ const growth = require('./src/growth');
 
 const CONFIG_DIR = path.join(os.homedir(), '.git-tamagotchi');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
-const CACHE_PATH = path.join(CONFIG_DIR, 'cache.json');
+const CACHE_PATH  = path.join(CONFIG_DIR, 'cache.json');
+const STATE_PATH  = path.join(CONFIG_DIR, 'state.json');
 
 let petWindow = null;
 let settingsWindow = null;
@@ -39,17 +40,40 @@ function saveCache(data) {
   } catch {}
 }
 
+// ---------- お世話状態の読み書き ----------
+function loadState() {
+  try { return JSON.parse(fs.readFileSync(STATE_PATH, 'utf8')); } catch { return null; }
+}
+function saveState(data) {
+  try {
+    fs.mkdirSync(CONFIG_DIR, { recursive: true });
+    fs.writeFileSync(STATE_PATH, JSON.stringify(data, null, 2), 'utf8');
+  } catch {}
+}
+
 // ---------- データ取得 → 状態を組み立てる ----------
-function buildState(raw, cfg) {
-  const score = growth.computeScore(raw.contributions);
-  const stage = growth.stageFor(score, cfg.kind || 'pet');
-  const today = new Date().toISOString().slice(0, 10);
-  const { streak, daysSince, mood } = growth.streakAndMood(raw.daily, today);
+function buildState(raw, cfg, careState) {
+  const baseScore = growth.computeScore(raw.contributions);
+  const ageBonus  = growth.ageBonusScore(careState && careState.birthTime);
+  const score     = baseScore + ageBonus;
+  const stage     = growth.stageFor(score, cfg.kind || 'pet');
+  const today     = new Date().toISOString().slice(0, 10);
+  const { streak, daysSince, mood: baseMood } = growth.streakAndMood(raw.daily, today);
+
+  const care = careState
+    ? { hunger: careState.hunger || 0, thirst: careState.thirst || 0,
+        poop: careState.poop || 0, weeds: careState.weeds || 0 }
+    : null;
+
+  const mood = care ? growth.moodWithCare(baseMood, care) : baseMood;
+
   return {
     kind: cfg.kind || 'pet',
     petName: cfg.name || raw.user.name || raw.user.login,
     login: raw.user.login,
     score,
+    baseScore,
+    ageBonus,
     stage,
     mood,
     streak,
@@ -57,6 +81,8 @@ function buildState(raw, cfg) {
     contributions: raw.contributions,
     totalContributions: raw.totalContributions,
     fetchedAt: raw.fetchedAt,
+    care,
+    birthTime: careState && careState.birthTime,
   };
 }
 
@@ -69,7 +95,30 @@ async function refresh() {
   try {
     const raw = await fetchContributions(cfg.token);
     saveCache(raw);
-    const state = buildState(raw, cfg);
+
+    let careState = loadState();
+    const now = new Date().toISOString();
+
+    if (!careState) {
+      // 初回起動: ペットの誕生とお世話状態を初期化
+      careState = {
+        birthTime: now,
+        hunger: 0,
+        thirst: 0,
+        poop: 0,
+        weeds: 0,
+        lastUpdated: now,
+        // 現在の累計を基準にして過去分をカウントしない
+        prevContributions: { ...raw.contributions },
+      };
+    } else {
+      // 既存状態を時間経過とコントリビューション差分で更新
+      const updated = growth.computeCare(careState, raw.contributions);
+      careState = { ...careState, ...updated };
+    }
+    saveState(careState);
+
+    const state = buildState(raw, cfg, careState);
     sendToPet('state-update', state);
     updateTrayTitle(state);
   } catch (err) {
@@ -107,7 +156,8 @@ function createPetWindow() {
     const cfg = loadConfig();
     sendToPet('config-update', cfg);
     const cache = loadCache();
-    if (cache) sendToPet('state-update', buildState(cache, cfg));
+    const careState = loadState();
+    if (cache) sendToPet('state-update', buildState(cache, cfg, careState));
     refresh();
   });
 }
@@ -137,7 +187,6 @@ function createSettingsWindow() {
 
 // ---------- トレイ ----------
 function makeTrayIcon() {
-  // 16x16 の単純なドット画像をコードで生成（外部アセット不要）
   const size = 16;
   const buf = Buffer.alloc(size * size * 4);
   for (let y = 0; y < size; y++) {
@@ -202,7 +251,7 @@ ipcMain.on('open-external', (_e, url) => shell.openExternal(url));
 
 // ---------- 起動 ----------
 app.whenReady().then(() => {
-  if (process.platform === 'darwin' && app.dock) app.dock.hide(); // macOSはDockに出さない
+  if (process.platform === 'darwin' && app.dock) app.dock.hide();
   createPetWindow();
   createTray();
   refreshTimer = setInterval(refresh, 30 * 60 * 1000); // 30分ごとに更新
