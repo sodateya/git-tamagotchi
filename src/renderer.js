@@ -46,8 +46,6 @@ function applyState(s) {
   document.body.className = `${s.kind} ${s.mood.key}`;
 
   applyChar(s.kind, s.svgKey || s.stage.current.key, s.stage.current.key, s.stage.current.emoji);
-  $('face').textContent = `${s.mood.face} ${s.mood.label}`;
-  $('name').textContent = s.petName || '';
   $('stage').textContent = s.stage.current.label;
   $('streak').textContent = s.streak > 0 ? `🔥${s.streak}日` : '';
   $('score').textContent = `${s.score}pt`;
@@ -66,14 +64,24 @@ function applyState(s) {
 
 window.api.on('state-update', applyState);
 
-window.api.on('config-update', (cfg) => {
-  if (cfg) document.body.classList.toggle('plant', cfg.kind === 'plant');
-});
+function applyShellStyle(cfg) {
+  if (!cfg) return;
+  document.body.classList.toggle('plant', cfg.kind === 'plant');
+  const shell = document.querySelector('.shell');
+  if (!shell) return;
+  shell.setAttribute('data-shell-color', cfg.shellColor || 'pink');
+  if (cfg.shellPattern && cfg.shellPattern !== 'solid') {
+    shell.setAttribute('data-shell-pattern', cfg.shellPattern);
+  } else {
+    shell.removeAttribute('data-shell-pattern');
+  }
+}
+
+window.api.on('config-update', applyShellStyle);
 
 window.api.on('need-token', () => {
   $('stage').textContent = 'トークン未設定';
   $('hint').textContent = 'トレイの設定からGitHubトークンを登録してね';
-  $('face').textContent = '🔑 まちわびてる';
 });
 
 window.api.on('error', (msg) => {
