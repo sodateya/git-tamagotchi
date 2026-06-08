@@ -19,11 +19,32 @@ const STAGES = {
     { min: 800, key: 'master', label: '達人',    emoji: '🦅', desc: '1週間でここまで来た！伝説の域' },
   ],
   plant: [
-    { min: 0,   key: 'seed',   label: 'たね',    emoji: '🌰', desc: '土の中…コミットで芽吹かせよう' },
-    { min: 30,  key: 'sprout', label: 'め',      emoji: '🌱', desc: '芽が出た！水やり（イシュー）も忘れずに' },
-    { min: 120, key: 'leaf',   label: 'わかば',  emoji: '🌿', desc: '葉が茂ってきた。PRで枝を伸ばそう' },
-    { min: 350, key: 'bloom',  label: 'かいか',  emoji: '🌷', desc: 'レビューで丁寧に育てた証' },
-    { min: 800, key: 'tree',   label: '大樹',    emoji: '🌳', desc: '1週間でここまで！森の主へ' },
+    { min: 0,   key: 'seed',   label: 'たね',      emoji: '🌰', desc: '土の中…コミットで芽吹かせよう' },
+    { min: 30,  key: 'sprout', label: 'め',        emoji: '🌱', desc: '芽が出た！水やり（イシュー）も忘れずに' },
+    { min: 120, key: 'leaf',   label: 'わかば',    emoji: '🌿', desc: '葉が茂ってきた。PRで枝を伸ばそう' },
+    { min: 350, key: 'bloom',  label: 'かいか',    emoji: '🌷', desc: 'レビューで丁寧に育てた証' },
+    { min: 800, key: 'tree',   label: '大樹',      emoji: '🌳', desc: '1週間でここまで！森の主へ' },
+  ],
+  cat: [
+    { min: 0,   key: 'egg',    label: 'まめ',      emoji: '🐾', desc: 'ミステリアスなたまご' },
+    { min: 30,  key: 'baby',   label: 'こねこ',    emoji: '🐱', desc: 'ふわふわの赤ちゃんにゃんこ' },
+    { min: 120, key: 'child',  label: 'ねこ',      emoji: '😺', desc: 'すばしっこく成長中' },
+    { min: 350, key: 'adult',  label: 'りっぱ',    emoji: '🐈', desc: '凛々しい一人前の猫に' },
+    { min: 800, key: 'master', label: 'しんぴ',    emoji: '✨', desc: '神秘の力に目覚めた伝説の猫' },
+  ],
+  slime: [
+    { min: 0,   key: 'egg',    label: 'しずく',    emoji: '💧', desc: '小さな一滴のはじまり' },
+    { min: 30,  key: 'baby',   label: 'ちびすら',  emoji: '🟢', desc: 'ぷにぷにスライム誕生！' },
+    { min: 120, key: 'child',  label: 'スライム',  emoji: '🫧', desc: 'プルプルと成長してきた' },
+    { min: 350, key: 'adult',  label: 'こうてい',  emoji: '👑', desc: 'お気に入りの王冠をゲット' },
+    { min: 800, key: 'master', label: 'だいおう',  emoji: '🌟', desc: '伝説の魔王スライムが降臨' },
+  ],
+  mushroom: [
+    { min: 0,   key: 'seed',   label: 'ほうし',    emoji: '🟤', desc: '土の中で眠る胞子' },
+    { min: 30,  key: 'sprout', label: 'めばえ',    emoji: '🍄', desc: '土を押しのけて出てきた！' },
+    { min: 120, key: 'leaf',   label: 'きのこ',    emoji: '🍄', desc: '赤い傘がかわいい' },
+    { min: 350, key: 'bloom',  label: 'おおきのこ', emoji: '🍄', desc: 'ずっしりと立派になってきた' },
+    { min: 800, key: 'tree',   label: 'まほうのこ', emoji: '✨', desc: '光り輝く伝説のきのこ' },
   ],
 };
 

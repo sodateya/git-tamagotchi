@@ -34,13 +34,24 @@ function careHint(care) {
   return null;
 }
 
+function applyChar(kind, stageKey, fallbackEmoji) {
+  const svgs = window.CHAR_SVGS;
+  const svg = svgs && svgs[kind] && svgs[kind][stageKey];
+  const el = $('char');
+  if (svg) {
+    el.innerHTML = svg;
+  } else {
+    el.textContent = fallbackEmoji;
+  }
+}
+
 function applyState(s) {
   if (!s) return;
   currentLogin = s.login || '';
 
   document.body.className = `${s.kind} ${s.mood.key}`;
 
-  $('char').textContent = s.stage.current.emoji;
+  applyChar(s.kind, s.stage.current.key, s.stage.current.emoji);
   $('face').textContent = `${s.mood.face} ${s.mood.label}`;
   $('name').textContent = s.petName || '';
   $('stage').textContent = s.stage.current.label;
