@@ -156,22 +156,15 @@ function streakAndMood(dailyCounts, todayStr) {
   return { streak, daysSince, mood };
 }
 
-// お世話状態を時間経過とコントリビューションの差分で更新する
-// careState: { hunger, thirst, poop, weeds, lastUpdated, prevContributions }
-// contributions: { commit, pullRequest, review, issue } 現在の GitHub 累計
-function computeCare(careState, contributions) {
+// お世話状態を時間経過とコントリビューション差分で更新する
+// careState: { hunger, thirst, poop, weeds, lastUpdated }
+// deltaContributions: { commit, pullRequest, review, issue } 前回フェッチ以降の増分
+function computeCare(careState, deltaContributions) {
   const now = Date.now();
   const last = careState.lastUpdated ? new Date(careState.lastUpdated).getTime() : now;
   // 最大1週間分の時間経過を計算（アプリを長期間閉じていた場合の爆発を防ぐ）
   const hoursElapsed = Math.min(Math.max(0, (now - last) / (1000 * 3600)), 168);
-
-  const prev = careState.prevContributions || { commit: 0, pullRequest: 0, review: 0, issue: 0 };
-  const delta = {
-    commit:      Math.max(0, (contributions.commit || 0)      - (prev.commit || 0)),
-    pullRequest: Math.max(0, (contributions.pullRequest || 0) - (prev.pullRequest || 0)),
-    review:      Math.max(0, (contributions.review || 0)      - (prev.review || 0)),
-    issue:       Math.max(0, (contributions.issue || 0)       - (prev.issue || 0)),
-  };
+  const delta = deltaContributions || {};
 
   const resolve = (current, careKey, actionKey) => {
     const def = CARE_DEFS[careKey];
@@ -187,7 +180,6 @@ function computeCare(careState, contributions) {
     poop:   resolve(careState.poop,   'poop',   'pullRequest'),
     weeds:  resolve(careState.weeds,  'weeds',  'review'),
     lastUpdated: new Date(now).toISOString(),
-    prevContributions: { ...contributions },
   };
 }
 
