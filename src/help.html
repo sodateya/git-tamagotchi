@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>お世話ガイド — Git Tamagotchi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #fff5f8;
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+      font-size: 14px;
+      color: #333;
+      padding: 20px 18px 24px;
+    }
+    h1 {
+      font-size: 17px;
+      color: #b83060;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 18px;
+    }
+    .care-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .care-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.07);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .care-icon { font-size: 30px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+    .care-body { flex: 1; }
+    .care-name {
+      font-size: 14px;
+      font-weight: bold;
+      color: #444;
+      margin-bottom: 2px;
+    }
+    .care-desc {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 7px;
+    }
+    .care-action {
+      background: #edf8ee;
+      border-left: 3px solid #5ab068;
+      padding: 5px 10px;
+      border-radius: 0 6px 6px 0;
+      font-size: 12px;
+      color: #2a5c34;
+      line-height: 1.5;
+    }
+    .care-action strong { color: #1a4226; }
+    .decay {
+      display: block;
+      margin-top: 5px;
+      font-size: 10px;
+      color: #bbb;
+    }
+    .footer {
+      margin-top: 18px;
+      font-size: 11px;
+      color: #bbb;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .alert-note {
+      background: #fff3e0;
+      border: 1px solid #ffcc80;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #7a4a00;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐣 お世話ガイド</h1>
+  <p class="subtitle">GitHubのアクティビティでペットをお世話しよう！</p>
+
+  <div class="alert-note">
+    ⚠️ ニーズが <strong>60%</strong> を超えると画面上部にアラートが降りてきます。<br>
+    <strong>80%</strong> を超えると危険な状態です！早めに解消してね。
+  </div>
+
+  <div class="care-list">
+    <div class="care-card">
+      <div class="care-icon">🍗</div>
+      <div class="care-body">
+        <div class="care-name">空腹</div>
+        <div class="care-desc">放っておくとお腹が減ってしょんぼりしちゃう</div>
+        <div class="care-action">
+          💡 <strong>コミットする</strong>とお腹が満たされる（1回あたり 20 回復）
+        </div>
+        <span class="decay">⏱ 放置すると 4pt/時間 ずつ増加</span>
+      </div>
+    </div>
+
+    <div class="care-card">
+      <div class="care-icon">💧</div>
+      <div class="care-body">
+        <div class="care-name">水不足</div>
+        <div class="care-desc">水分補給を忘れずに！カラカラになっちゃう</div>
+        <div class="care-action">
+          💡 <strong>イシューを立てる</strong>と水が補給される（1回あたり 30 回復）
+        </div>
+        <span class="decay">⏱ 放置すると 2pt/時間 ずつ増加</span>
+      </div>
+    </div>
+
+    <div class="care-card">
+      <div class="care-icon">💩</div>
+      <div class="care-body">
+        <div class="care-name">うんち</div>
+        <div class="care-desc">定期的にスッキリさせてあげよう</div>
+        <div class="care-action">
+          💡 <strong>プルリクエストを送る</strong>とスッキリ（1回あたり 40 回復）
+        </div>
+        <span class="decay">⏱ 放置すると 1.5pt/時間 ずつ増加</span>
+      </div>
+    </div>
+
+    <div class="care-card">
+      <div class="care-icon">🌿</div>
+      <div class="care-body">
+        <div class="care-name">雑草</div>
+        <div class="care-desc">ほっておくと草がどんどん生えてくるよ</div>
+        <div class="care-action">
+          💡 <strong>コードレビューをする</strong>と雑草が抜ける（1回あたり 35 回復）
+        </div>
+        <span class="decay">⏱ 放置すると 1pt/時間 ずつ増加</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="footer">
+    1回の更新で最大5件分の効果が反映されます。<br>
+    アプリを更新ボタン（↻）で手動更新するか、30分ごとに自動更新されます。
+  </p>
+</body>
+</html>

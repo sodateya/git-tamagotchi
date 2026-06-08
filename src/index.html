@@ -32,7 +32,7 @@
         inset -6px -8px 16px rgba(0,0,0,.25),
         inset 6px 8px 14px rgba(255,255,255,.35),
         0 8px 18px rgba(0,0,0,.30);
-      position: relative;
+      position: relative;  /* care-alert-wrap の基準 */
       -webkit-app-region: drag;
       display: flex; flex-direction: column; align-items: center;
       padding-top: 22px;
@@ -77,25 +77,32 @@
     @keyframes hop  { 0%,100%{ transform: translateY(0) scale(1);} 30%{ transform: translateY(-12px) scale(1.05);} 60%{ transform: translateY(0) scale(.97);} }
     @keyframes sway { 0%,100%{ transform: rotate(-4deg);}      50%{ transform: rotate(4deg);} }
 
-    /* お世話インジケーター */
-    .care-row {
-      display: flex; gap: 8px; margin-top: 5px;
+    /* お世話アラート（スクリーン上端から降りてくる） */
+    .care-alert-wrap {
+      position: absolute;
+      top: 22px; left: 25px;
+      width: 150px; height: 20px;
+      overflow: hidden;
+      z-index: 10;
+      pointer-events: none;
     }
-    .care-item {
-      font-size: 11px;
-      display: flex; align-items: center; gap: 2px;
-      color: var(--lcd-dark);
+    .care-alert {
+      width: 100%;
+      background: rgba(180,90,10,.88);
+      color: #fff;
+      font-size: 9px;
+      text-align: center;
+      padding: 3px 0;
+      border-radius: 0 0 5px 5px;
+      transform: translateY(-100%);
+      transition: transform .35s cubic-bezier(.2,.8,.4,1);
     }
-    .care-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: #4a8a56;
-      transition: background .4s;
-      flex-shrink: 0;
+    .care-alert.show { transform: translateY(0); }
+    .care-alert.crit {
+      background: rgba(180,20,10,.92);
+      animation: pulse-alert .8s ease-in-out infinite;
     }
-    .care-dot.warn { background: #d4a020; }
-    .care-dot.bad  { background: #d06010; }
-    .care-dot.crit { background: #cc2222; animation: pulse .8s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{ transform: scale(1); opacity:1; } 50%{ transform: scale(1.5); opacity:.6; } }
+    @keyframes pulse-alert { 0%,100%{ opacity:1; } 50%{ opacity:.55; } }
 
     .face { font-size: 14px; margin-top: 4px; color: var(--lcd-dark); }
     .name { font-size: 12px; color: var(--lcd-dark); margin-top: 2px; }
@@ -119,7 +126,7 @@
     }
 
     /* ボタン列 */
-    .buttons { margin-top: 6px; display: flex; gap: 14px; -webkit-app-region: no-drag; }
+    .buttons { margin-top: 6px; display: flex; gap: 10px; -webkit-app-region: no-drag; }
     .btn {
       width: 26px; height: 26px; border-radius: 50%;
       border: none; cursor: pointer; font-size: 12px;
@@ -133,14 +140,11 @@
 </head>
 <body>
   <div class="shell">
+    <div class="care-alert-wrap">
+      <div class="care-alert" id="care-alert"></div>
+    </div>
     <div class="screen">
       <div class="char" id="char">🥚</div>
-      <div class="care-row" id="care-row">
-        <span class="care-item" id="care-hunger" title="空腹 → コミットで解消">🍗<i class="care-dot" id="dot-hunger"></i></span>
-        <span class="care-item" id="care-thirst" title="水不足 → イシューで解消">💧<i class="care-dot" id="dot-thirst"></i></span>
-        <span class="care-item" id="care-poop"   title="うんち → PRで解消">💩<i class="care-dot" id="dot-poop"></i></span>
-        <span class="care-item" id="care-weeds"  title="雑草 → レビューで解消">🌿<i class="care-dot" id="dot-weeds"></i></span>
-      </div>
       <div class="face" id="face">…</div>
       <div class="name" id="name"></div>
     </div>
@@ -153,6 +157,7 @@
       <button class="btn" id="refresh" title="更新">↻</button>
       <button class="btn" id="settings" title="GitHubで見る">@</button>
       <button class="btn" id="reset" title="最初からやり直す">🥚</button>
+      <button class="btn" id="help" title="お世話ガイド">?</button>
     </div>
     <div class="hint" id="hint"></div>
   </div>
