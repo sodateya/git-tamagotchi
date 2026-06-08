@@ -88,23 +88,25 @@ window.api.on('error', (msg) => {
   $('hint').textContent = '取得エラー: ' + (msg || '').slice(0, 40);
 });
 
-// "tamago" キーシーケンス検出でデバッグ画面を開く
-(function () {
-  const SEQ = 'tamago';
+// キーシーケンス検出ユーティリティ
+function onKeySequence(seq, callback) {
   let buf = '';
   let timer = null;
   document.addEventListener('keydown', (e) => {
     buf += e.key.toLowerCase();
-    if (!SEQ.startsWith(buf)) buf = e.key.toLowerCase();
+    if (!seq.startsWith(buf)) buf = e.key.toLowerCase();
     clearTimeout(timer);
-    if (buf === SEQ) {
+    if (buf === seq) {
       buf = '';
-      window.api.openDebug();
+      callback();
     } else {
       timer = setTimeout(() => { buf = ''; }, 2000);
     }
   });
-})();
+}
+
+onKeySequence('tamago', () => window.api.openDebug());
+onKeySequence('shinka', () => window.api.openShinka());
 
 $('refresh').addEventListener('click', () => {
   $('hint').textContent = '更新中…';

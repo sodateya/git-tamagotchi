@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>進化条件 — Git Tamagotchi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+      font-size: 12px;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    h1 { font-size: 16px; margin-bottom: 4px; color: #adf; }
+    .subtitle { font-size: 11px; color: #556; margin-bottom: 16px; }
+
+    .points-legend {
+      display: flex;
+      gap: 6px 20px;
+      flex-wrap: wrap;
+      background: #16213e;
+      border: 1px solid #2a3a5e;
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin-bottom: 20px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-label { color: #9ab; font-size: 11px; }
+    .legend-pt { color: #6ad07d; font-weight: 700; font-size: 12px; }
+    .legend-sep { color: #334; font-size: 14px; }
+
+    .kind-section { margin-bottom: 18px; }
+    .kind-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #8cf;
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+
+    .evolution-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .stage-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #16213e;
+      border: 1px solid #2a3a5e;
+      border-radius: 8px;
+      padding: 8px 6px 7px;
+      width: 96px;
+      min-width: 96px;
+    }
+    .stage-card svg { display: block; width: 44px; height: 44px; }
+    .stage-card .char-fallback {
+      font-size: 34px; line-height: 44px; text-align: center; width: 44px;
+    }
+    .stage-name {
+      margin-top: 5px; font-size: 11px; color: #e0e0e0;
+      font-weight: 700; text-align: center;
+    }
+    .stage-pt {
+      font-size: 10px; color: #6ad07d; font-weight: 700;
+      margin-top: 3px;
+    }
+    .stage-pt.start { color: #778; }
+    .stage-desc {
+      font-size: 9px; color: #667; margin-top: 4px;
+      text-align: center; line-height: 1.4;
+    }
+
+    .arrow-wrap {
+      display: flex;
+      align-items: center;
+      padding: 0 3px;
+      padding-top: 22px; /* カードの中央付近に合わせる */
+    }
+    .arrow { color: #3a4a6e; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h1>✨ 進化条件シート</h1>
+  <p class="subtitle">キーボードで「shinka」と入力すると表示できます</p>
+
+  <div class="points-legend">
+    <div class="legend-item">
+      <span class="legend-label">コミット</span>
+      <span class="legend-pt">+5pt</span>
+    </div>
+    <span class="legend-sep">|</span>
+    <div class="legend-item">
+      <span class="legend-label">PR 作成</span>
+      <span class="legend-pt">+20pt</span>
+    </div>
+    <span class="legend-sep">|</span>
+    <div class="legend-item">
+      <span class="legend-label">レビュー</span>
+      <span class="legend-pt">+30pt</span>
+    </div>
+    <span class="legend-sep">|</span>
+    <div class="legend-item">
+      <span class="legend-label">Issue 対応</span>
+      <span class="legend-pt">+10pt</span>
+    </div>
+    <span class="legend-sep">|</span>
+    <div class="legend-item">
+      <span class="legend-label">誕生ボーナス</span>
+      <span class="legend-pt">+5pt/日（最大 35pt）</span>
+    </div>
+  </div>
+
+  <div id="root"></div>
+
+  <script src="characters.js"></script>
+  <script src="shinka.js"></script>
+</body>
+</html>

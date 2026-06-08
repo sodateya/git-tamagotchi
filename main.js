@@ -306,6 +306,20 @@ function createDebugWindow() {
   win.loadFile(path.join(__dirname, 'src', 'debug.html'));
 }
 
+function createShinkaWindow() {
+  const win = new BrowserWindow({
+    width: 640,
+    height: 640,
+    title: '進化条件 — Git Tamagotchi',
+    resizable: true,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  win.loadFile(path.join(__dirname, 'src', 'shinka.html'));
+}
+
 function createSettingsWindow() {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.focus();
@@ -398,6 +412,7 @@ ipcMain.handle('save-config', (_e, cfg) => {
 });
 ipcMain.handle('refresh-now', () => refresh());
 ipcMain.handle('open-debug', () => createDebugWindow());
+ipcMain.handle('open-shinka', () => createShinkaWindow());
 ipcMain.handle('reset-pet', () => resetPet());
 ipcMain.handle('open-help', () => createHelpWindow());
 ipcMain.on('open-external', (_e, url) => shell.openExternal(url));

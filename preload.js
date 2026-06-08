@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('api', {
   refreshNow: () => ipcRenderer.invoke('refresh-now'),
   openExternal: (url) => ipcRenderer.send('open-external', url),
   openDebug: () => ipcRenderer.invoke('open-debug'),
+  openShinka: () => ipcRenderer.invoke('open-shinka'),
   resetPet: () => ipcRenderer.invoke('reset-pet'),
   openHelp: () => ipcRenderer.invoke('open-help'),
   on: (channel, cb) => {
