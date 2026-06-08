@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('api', {
   openExternal: (url) => ipcRenderer.send('open-external', url),
   openDebug: () => ipcRenderer.invoke('open-debug'),
   resetPet: () => ipcRenderer.invoke('reset-pet'),
+  openHelp: () => ipcRenderer.invoke('open-help'),
   on: (channel, cb) => {
     const allowed = ['state-update', 'config-update', 'error', 'need-token'];
     if (allowed.includes(channel)) {

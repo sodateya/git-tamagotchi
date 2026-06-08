@@ -209,6 +209,20 @@ function createPetWindow() {
   });
 }
 
+function createHelpWindow() {
+  const win = new BrowserWindow({
+    width: 380,
+    height: 520,
+    title: 'お世話ガイド — Git Tamagotchi',
+    resizable: false,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  win.loadFile(path.join(__dirname, 'src', 'help.html'));
+}
+
 function createDebugWindow() {
   const win = new BrowserWindow({
     width: 900,
@@ -315,6 +329,7 @@ ipcMain.handle('save-config', (_e, cfg) => {
 ipcMain.handle('refresh-now', () => refresh());
 ipcMain.handle('open-debug', () => createDebugWindow());
 ipcMain.handle('reset-pet', () => resetPet());
+ipcMain.handle('open-help', () => createHelpWindow());
 ipcMain.on('open-external', (_e, url) => shell.openExternal(url));
 
 // ---------- 起動 ----------

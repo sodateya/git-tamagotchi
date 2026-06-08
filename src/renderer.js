@@ -3,35 +3,27 @@
 const $ = (id) => document.getElementById(id);
 let currentLogin = '';
 
-// お世話レベルに応じたドットのクラスを返す
-function careClass(val) {
-  if (val < 30) return '';
-  if (val < 60) return 'warn';
-  if (val < 80) return 'bad';
-  return 'crit';
-}
+const CARE_NEEDS = [
+  { key: 'hunger', warn: '🍗 おなかすいた…',   crit: '🍗 ぺこぺこ！' },
+  { key: 'poop',   warn: '💩 もよおしてきた…', crit: '💩 もう限界！' },
+  { key: 'thirst', warn: '💧 のどかわいた…',   crit: '💧 カラカラ！' },
+  { key: 'weeds',  warn: '🌿 草が伸びてきた…', crit: '🌿 ぼうぼう！' },
+];
 
 function applyCare(care) {
-  if (!care) return;
-  const keys = ['hunger', 'thirst', 'poop', 'weeds'];
-  keys.forEach(key => {
-    const dot = $('dot-' + key);
-    if (dot) dot.className = 'care-dot ' + careClass(care[key] || 0);
-  });
-}
-
-// 深刻なお世話不足があればヒントに表示する（最初の1件）
-function careHint(care) {
-  if (!care) return null;
-  if ((care.hunger || 0) >= 80) return '🍗おなかペコペコ！コミットして！';
-  if ((care.thirst || 0) >= 80) return '💧カラカラ！イシューを立てよう';
-  if ((care.poop   || 0) >= 80) return '💩そろそろ限界！PRをマージしよう';
-  if ((care.weeds  || 0) >= 80) return '🌿ぼうぼう！レビューしよう';
-  if ((care.hunger || 0) >= 60) return '🍗おなかすいてきた…コミットして';
-  if ((care.thirst || 0) >= 60) return '💧のどかわいた…イシューを立てて';
-  if ((care.poop   || 0) >= 60) return '💩もよおしてきた…PRを送ろう';
-  if ((care.weeds  || 0) >= 60) return '🌿草が伸びてきた…レビューしよう';
-  return null;
+  const el = $('care-alert');
+  if (!el || !care) return;
+  const urgent = CARE_NEEDS
+    .map(n => ({ ...n, val: care[n.key] || 0 }))
+    .filter(n => n.val >= 60)
+    .sort((a, b) => b.val - a.val)[0];
+  if (urgent) {
+    const isCrit = urgent.val >= 80;
+    el.textContent = isCrit ? urgent.crit : urgent.warn;
+    el.className = 'care-alert show' + (isCrit ? ' crit' : '');
+  } else {
+    el.className = 'care-alert';
+  }
 }
 
 function applyChar(kind, svgKey, stageKey, fallbackEmoji) {
@@ -69,9 +61,7 @@ function applyState(s) {
   }
 
   applyCare(s.care);
-
-  const hint = careHint(s.care);
-  $('hint').textContent = hint || s.stage.current.desc;
+  $('hint').textContent = s.stage.current.desc;
 }
 
 window.api.on('state-update', applyState);
@@ -122,4 +112,8 @@ $('reset').addEventListener('click', () => {
     $('hint').textContent = 'リセット中…';
     window.api.resetPet();
   }
+});
+
+$('help').addEventListener('click', () => {
+  window.api.openHelp();
 });
