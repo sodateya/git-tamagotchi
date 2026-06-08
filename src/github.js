@@ -3,55 +3,33 @@
 const GQL = 'https://api.github.com/graphql';
 const REST_BASE = 'https://api.github.com';
 
-// since が指定された場合: since以降のコントリビューション差分 + 直近30日のカレンダーを1リクエストで取得
-// since が null の場合（初回）: カレンダーのみ取得してスコアはゼロスタート
-async function fetchContributions(token, since) {
+// 1年分の累計コントリビューション + 直近30日のカレンダーを1リクエストで取得
+// delta計算は呼び出し側(main.js)が lastContributions と比較して行う
+async function fetchContributions(token) {
   const to = new Date();
+  const yearAgo = new Date(to);
+  yearAgo.setFullYear(yearAgo.getFullYear() - 1);
   const streakFrom = new Date(to.getTime() - 30 * 24 * 3600 * 1000);
 
-  let query, variables;
-
-  if (since) {
-    query = `
-      query($since: DateTime!, $to: DateTime!, $streakFrom: DateTime!) {
-        viewer {
-          login name avatarUrl
-          delta: contributionsCollection(from: $since, to: $to) {
-            totalCommitContributions
-            totalPullRequestContributions
-            totalPullRequestReviewContributions
-            totalIssueContributions
-          }
-          calendar: contributionsCollection(from: $streakFrom, to: $to) {
-            contributionCalendar {
-              totalContributions
-              weeks { contributionDays { date contributionCount } }
-            }
+  const query = `
+    query($yearAgo: DateTime!, $to: DateTime!, $streakFrom: DateTime!) {
+      viewer {
+        login name avatarUrl
+        totals: contributionsCollection(from: $yearAgo, to: $to) {
+          totalCommitContributions
+          totalPullRequestContributions
+          totalPullRequestReviewContributions
+          totalIssueContributions
+        }
+        calendar: contributionsCollection(from: $streakFrom, to: $to) {
+          contributionCalendar {
+            totalContributions
+            weeks { contributionDays { date contributionCount } }
           }
         }
       }
-    `;
-    variables = {
-      since: new Date(since).toISOString(),
-      to: to.toISOString(),
-      streakFrom: streakFrom.toISOString(),
-    };
-  } else {
-    query = `
-      query($streakFrom: DateTime!, $to: DateTime!) {
-        viewer {
-          login name avatarUrl
-          calendar: contributionsCollection(from: $streakFrom, to: $to) {
-            contributionCalendar {
-              totalContributions
-              weeks { contributionDays { date contributionCount } }
-            }
-          }
-        }
-      }
-    `;
-    variables = { streakFrom: streakFrom.toISOString(), to: to.toISOString() };
-  }
+    }
+  `;
 
   const res = await fetch(GQL, {
     method: 'POST',
@@ -60,7 +38,14 @@ async function fetchContributions(token, since) {
       'Content-Type': 'application/json',
       'User-Agent': 'git-tamagotchi',
     },
-    body: JSON.stringify({ query, variables }),
+    body: JSON.stringify({
+      query,
+      variables: {
+        yearAgo: yearAgo.toISOString(),
+        to: to.toISOString(),
+        streakFrom: streakFrom.toISOString(),
+      },
+    }),
   });
 
   if (!res.ok) {
@@ -82,17 +67,14 @@ async function fetchContributions(token, since) {
   }
   daily.sort((a, b) => (a.date < b.date ? -1 : 1));
 
-  // delta は since 以降の差分、初回は 0
-  const deltaContributions = v.delta ? {
-    commit:      v.delta.totalCommitContributions,
-    pullRequest: v.delta.totalPullRequestContributions,
-    review:      v.delta.totalPullRequestReviewContributions,
-    issue:       v.delta.totalIssueContributions,
-  } : { commit: 0, pullRequest: 0, review: 0, issue: 0 };
-
   return {
     user: { login: v.login, name: v.name, avatarUrl: v.avatarUrl },
-    deltaContributions,
+    contributions: {
+      commit:      v.totals.totalCommitContributions,
+      pullRequest: v.totals.totalPullRequestContributions,
+      review:      v.totals.totalPullRequestReviewContributions,
+      issue:       v.totals.totalIssueContributions,
+    },
     totalContributions: calCC.contributionCalendar.totalContributions,
     daily,
     fetchedAt: to.toISOString(),
