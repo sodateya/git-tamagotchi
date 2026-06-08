@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-const { fetchContributions } = require('./src/github');
+const { fetchContributions, fetchEvents } = require('./src/github');
 const growth = require('./src/growth');
 
 const CONFIG_DIR = path.join(os.homedir(), '.git-tamagotchi');
@@ -17,6 +17,12 @@ let petWindow = null;
 let settingsWindow = null;
 let tray = null;
 let refreshTimer = null;
+
+// イベントポーリング用
+let isRefreshing = false;
+let eventPollTimer = null;
+let eventEtag = null;
+let eventLogin = null;
 
 // ---------- 設定の読み書き ----------
 function loadConfig() {
@@ -51,27 +57,44 @@ function saveState(data) {
   } catch {}
 }
 
+// ---------- 旧フォーマット（scoreBaseline）から累積スコア方式への移行 ----------
+function migrateState(careState) {
+  if (!careState || careState.accumulatedScore !== undefined) return careState;
+  const cache = loadCache();
+  let accumulatedScore = 0;
+  if (careState.scoreBaseline && cache && cache.contributions) {
+    const baseline = growth.computeScore(careState.scoreBaseline);
+    const current  = growth.computeScore(cache.contributions);
+    accumulatedScore = Math.max(0, current - baseline);
+  }
+  const migrated = {
+    ...careState,
+    accumulatedScore,
+    lastFetchedAt: new Date().toISOString(),
+  };
+  delete migrated.scoreBaseline;
+  delete migrated.prevContributions;
+  return migrated;
+}
+
 // ---------- データ取得 → 状態を組み立てる ----------
 
-// バリアントが未決定のステージがあれば確定してcareStateを更新する
-function resolveVariants(careState, stageKey, contributions) {
+function resolveVariants(careState, stageKey, deltaContributions) {
   const variants = careState.variants || {};
-  // egg/seed/sprout/baby は variant なし（固定）
   const branching = ['child', 'adult', 'master', 'leaf', 'bloom', 'tree'];
   if (branching.includes(stageKey) && !variants[stageKey]) {
-    variants[stageKey] = growth.rollVariant(contributions);
+    variants[stageKey] = growth.rollVariant(deltaContributions);
     careState.variants = variants;
   }
   return careState;
 }
 
 function buildState(raw, cfg, careState) {
-  const baseline  = growth.computeScore((careState && careState.scoreBaseline) || {});
-  const baseScore = Math.max(0, growth.computeScore(raw.contributions) - baseline);
-  const ageBonus  = growth.ageBonusScore(careState && careState.birthTime);
-  const score     = baseScore + ageBonus;
-  const stage     = growth.stageFor(score, cfg.kind || 'pet');
-  const today     = new Date().toISOString().slice(0, 10);
+  const baseScore  = careState ? (careState.accumulatedScore || 0) : 0;
+  const ageBonus   = growth.ageBonusScore(careState && careState.birthTime);
+  const score      = baseScore + ageBonus;
+  const stage      = growth.stageFor(score, cfg.kind || 'pet');
+  const today      = new Date().toISOString().slice(0, 10);
   const { streak, daysSince, mood: baseMood } = growth.streakAndMood(raw.daily, today);
 
   const care = careState
@@ -81,7 +104,6 @@ function buildState(raw, cfg, careState) {
 
   const mood = care ? growth.moodWithCare(baseMood, care) : baseMood;
 
-  // バリアント: 現在ステージのvariantを取得（なければ 'a'）
   const variants = (careState && careState.variants) || {};
   const currentVariant = variants[stage.current.key] || 'a';
   const svgKey = growth.svgKey(stage.current.key, currentVariant);
@@ -99,7 +121,6 @@ function buildState(raw, cfg, careState) {
     mood,
     streak,
     daysSince,
-    contributions: raw.contributions,
     totalContributions: raw.totalContributions,
     fetchedAt: raw.fetchedAt,
     care,
@@ -108,69 +129,114 @@ function buildState(raw, cfg, careState) {
 }
 
 async function refresh() {
-  const cfg = loadConfig();
-  if (!cfg.token) {
-    sendToPet('need-token', null);
-    return;
-  }
+  if (isRefreshing) return;
+  isRefreshing = true;
   try {
-    const raw = await fetchContributions(cfg.token);
-    saveCache(raw);
+    const cfg = loadConfig();
+    if (!cfg.token) {
+      sendToPet('need-token', null);
+      return;
+    }
 
     let careState = loadState();
+
+    // 旧フォーマットからの移行
+    if (careState && careState.accumulatedScore === undefined) {
+      careState = migrateState(careState);
+      saveState(careState);
+    }
+
+    const since = careState ? careState.lastFetchedAt : null;
+    const raw = await fetchContributions(cfg.token, since);
+    saveCache(raw);
+
     const now = new Date().toISOString();
 
     if (!careState) {
-      // 初回起動: ペットの誕生とお世話状態を初期化
+      // 初回起動: ゼロスタートで状態を初期化
       careState = {
         birthTime: now,
+        accumulatedScore: 0,
+        lastFetchedAt: raw.fetchedAt,
         hunger: 0,
         thirst: 0,
         poop: 0,
         weeds: 0,
         lastUpdated: now,
-        // 現在の累計を基準にして過去分をカウントしない
-        prevContributions: { ...raw.contributions },
-        // スコアをリセット起点から計算するためのベースライン
-        scoreBaseline: { ...raw.contributions },
       };
     } else {
-      // 既存状態を時間経過とコントリビューション差分で更新
-      const updated = growth.computeCare(careState, raw.contributions);
-      careState = { ...careState, ...updated };
+      // 差分スコアを累積、お世話状態を更新
+      const deltaScore  = growth.computeScore(raw.deltaContributions);
+      const careUpdated = growth.computeCare(careState, raw.deltaContributions);
+      careState = {
+        ...careState,
+        ...careUpdated,
+        accumulatedScore: (careState.accumulatedScore || 0) + deltaScore,
+        lastFetchedAt: raw.fetchedAt,
+      };
     }
 
-    // 現在のステージに対するバリアントを確定（未確定なら rollVariant で決める）
-    const baseline2     = growth.computeScore(careState.scoreBaseline || {});
-    const previewScore  = Math.max(0, growth.computeScore(raw.contributions) - baseline2) + growth.ageBonusScore(careState.birthTime);
-    const previewStage  = growth.stageFor(previewScore, cfg.kind || 'pet');
-    careState = resolveVariants(careState, previewStage.current.key, raw.contributions);
+    const previewScore = (careState.accumulatedScore || 0) + growth.ageBonusScore(careState.birthTime);
+    const previewStage = growth.stageFor(previewScore, cfg.kind || 'pet');
+    careState = resolveVariants(careState, previewStage.current.key, raw.deltaContributions);
     saveState(careState);
 
     const state = buildState(raw, cfg, careState);
     sendToPet('state-update', state);
     updateTrayTitle(state);
+
+    // ユーザー名が確定したらイベントポーリングを開始（またはログイン変更時に再起動）
+    if (state.login && state.login !== eventLogin) {
+      startEventPolling(state.login);
+    }
   } catch (err) {
     sendToPet('error', String(err.message || err));
+  } finally {
+    isRefreshing = false;
   }
 }
 
 async function resetPet() {
   const now = new Date().toISOString();
-  const cache = loadCache();
-  const base = cache ? { ...cache.contributions } : {};
   saveState({
     birthTime: now,
+    accumulatedScore: 0,
+    lastFetchedAt: now,
     hunger: 0,
     thirst: 0,
     poop: 0,
     weeds: 0,
     lastUpdated: now,
-    prevContributions: base,
-    scoreBaseline: base,
     variants: {},
   });
   await refresh();
+}
+
+// ---------- GitHub Events API ポーリング ----------
+
+async function pollEvents() {
+  if (!eventLogin) return;
+  try {
+    const cfg = loadConfig();
+    if (!cfg.token) return;
+    const { hasNew, etag } = await fetchEvents(cfg.token, eventLogin, eventEtag);
+    if (etag) eventEtag = etag;
+    if (hasNew) {
+      // 新しいアクティビティを検知したら即座に refresh
+      // 次の poll では ETag をリセットして再チェック
+      eventEtag = null;
+      await refresh();
+    }
+  } catch {
+    // ポーリングエラーは無視して次回に委ねる
+  }
+}
+
+function startEventPolling(login) {
+  eventLogin = login;
+  eventEtag = null;
+  if (eventPollTimer) clearInterval(eventPollTimer);
+  eventPollTimer = setInterval(pollEvents, 60 * 1000); // 60秒ごと
 }
 
 function sendToPet(channel, payload) {
@@ -202,8 +268,12 @@ function createPetWindow() {
   petWindow.webContents.on('did-finish-load', () => {
     const cfg = loadConfig();
     sendToPet('config-update', cfg);
+    let careState = loadState();
+    if (careState && careState.accumulatedScore === undefined) {
+      careState = migrateState(careState);
+      saveState(careState);
+    }
     const cache = loadCache();
-    const careState = loadState();
     if (cache) sendToPet('state-update', buildState(cache, cfg, careState));
     refresh();
   });
@@ -337,10 +407,13 @@ app.whenReady().then(() => {
   if (process.platform === 'darwin' && app.dock) app.dock.hide();
   createPetWindow();
   createTray();
-  refreshTimer = setInterval(refresh, 30 * 60 * 1000); // 30分ごとに更新
+  refreshTimer = setInterval(refresh, 30 * 60 * 1000); // 30分ごとにフォールバック更新
 });
 
 app.on('window-all-closed', (e) => {
   // 常駐アプリなので閉じても終了しない（トレイから操作）
 });
-app.on('before-quit', () => { if (refreshTimer) clearInterval(refreshTimer); });
+app.on('before-quit', () => {
+  if (refreshTimer) clearInterval(refreshTimer);
+  if (eventPollTimer) clearInterval(eventPollTimer);
+});
