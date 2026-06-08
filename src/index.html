@@ -104,8 +104,34 @@
     }
     @keyframes pulse-alert { 0%,100%{ opacity:1; } 50%{ opacity:.55; } }
 
-    .face { font-size: 14px; margin-top: 4px; color: var(--lcd-dark); }
-    .name { font-size: 12px; color: var(--lcd-dark); margin-top: 2px; }
+    /* ユーザー設定のシェルカラー（柄のあとに定義して優先） */
+    body .shell[data-shell-color="pink"]   { --shell: #f4a8c0; --shell-2: #e87fa0; }
+    body .shell[data-shell-color="yellow"] { --shell: #f8e870; --shell-2: #e0c040; }
+    body .shell[data-shell-color="sky"]    { --shell: #a8d8f4; --shell-2: #70a8e0; }
+    body .shell[data-shell-color="green"]  { --shell: #a8e8a8; --shell-2: #70c070; }
+    body .shell[data-shell-color="purple"] { --shell: #d0a8f0; --shell-2: #a870d8; }
+    body .shell[data-shell-color="orange"] { --shell: #f4c070; --shell-2: #e09030; }
+    body .shell[data-shell-color="white"]  { --shell: #f4f0ec; --shell-2: #d8d4d0; }
+    body .shell[data-shell-color="navy"]   { --shell: #7090c0; --shell-2: #405888; }
+
+    /* シェルの柄 */
+    .shell[data-shell-pattern="dots"] {
+      background-image:
+        radial-gradient(circle at 35% 25%, var(--shell), var(--shell-2)),
+        radial-gradient(circle, rgba(255,255,255,.35) 3px, transparent 3px);
+      background-size: auto, 12px 12px;
+    }
+    .shell[data-shell-pattern="stripes"] {
+      background-image:
+        radial-gradient(circle at 35% 25%, var(--shell), var(--shell-2)),
+        repeating-linear-gradient(45deg, rgba(255,255,255,.18) 0 3px, transparent 3px 10px);
+    }
+    .shell[data-shell-pattern="check"] {
+      background-image:
+        radial-gradient(circle at 35% 25%, var(--shell), var(--shell-2)),
+        repeating-linear-gradient(0deg, transparent 0 6px, rgba(255,255,255,.15) 6px 7px),
+        repeating-linear-gradient(90deg, transparent 0 6px, rgba(255,255,255,.15) 6px 7px);
+    }
 
     /* ステータスバー */
     .status {
@@ -145,8 +171,6 @@
     </div>
     <div class="screen">
       <div class="char" id="char">🥚</div>
-      <div class="face" id="face">…</div>
-      <div class="name" id="name"></div>
     </div>
     <div class="status">
       <div class="row"><span id="stage">起動中</span><span id="streak"></span></div>

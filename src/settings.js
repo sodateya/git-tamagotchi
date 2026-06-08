@@ -3,6 +3,28 @@
 const $ = (id) => document.getElementById(id);
 
 const KINDS = ['pet', 'cat', 'slime', 'plant', 'mushroom'];
+const COLORS = ['pink','yellow','sky','green','purple','orange','white','navy'];
+const PATTERNS = ['solid','dots','stripes','check'];
+
+let selectedColor = 'pink';
+let selectedPattern = 'solid';
+
+function selectColor(color) {
+  selectedColor = COLORS.includes(color) ? color : 'pink';
+  document.querySelectorAll('.swatch').forEach(s =>
+    s.classList.toggle('selected', s.dataset.color === selectedColor));
+}
+
+function selectPattern(pattern) {
+  selectedPattern = PATTERNS.includes(pattern) ? pattern : 'solid';
+  document.querySelectorAll('.pattern-btn').forEach(b =>
+    b.classList.toggle('selected', b.dataset.pattern === selectedPattern));
+}
+
+document.querySelectorAll('.swatch').forEach(s =>
+  s.addEventListener('click', () => selectColor(s.dataset.color)));
+document.querySelectorAll('.pattern-btn').forEach(b =>
+  b.addEventListener('click', () => selectPattern(b.dataset.pattern)));
 
 // baby/sprout ステージのSVGをプレビューに表示
 function fillPreviews() {
@@ -24,6 +46,8 @@ function fill(cfg) {
   const kind = KINDS.includes(cfg.kind) ? cfg.kind : 'pet';
   const radio = document.querySelector(`input[name=kind][value=${kind}]`);
   if (radio) radio.checked = true;
+  selectColor(cfg.shellColor || 'pink');
+  selectPattern(cfg.shellPattern || 'solid');
 }
 
 fillPreviews();
@@ -40,6 +64,8 @@ $('save').addEventListener('click', async () => {
     token: $('token').value.trim(),
     name: $('name').value.trim(),
     kind: document.querySelector('input[name=kind]:checked').value,
+    shellColor: selectedColor,
+    shellPattern: selectedPattern,
   };
   await window.api.saveConfig(cfg);
   $('ok').textContent = '保存しました ✓ キャラに反映されます';

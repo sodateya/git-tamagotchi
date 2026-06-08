@@ -30,6 +30,21 @@
     .char-preview { font-size: 26px; display: block; margin-bottom: 4px; line-height: 1.1; }
     .char-preview svg { width: 28px; height: 28px; display: inline-block; }
     a { color: #6ab0ff; }
+    .shell-colors { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .swatch {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2px solid transparent; cursor: pointer;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .swatch.selected { border-color: #6ad07d; box-shadow: 0 0 0 2px #14241a; }
+    .shell-patterns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .pattern-btn {
+      padding: 5px 12px; border-radius: 8px;
+      border: 2px solid #3a3f47; background: #11141a; color: #e8eaed;
+      cursor: pointer; font-size: 12px;
+    }
+    .pattern-btn.selected { border-color: #6ad07d; background: #14241a; color: #6ad07d; }
     .save {
       margin-top: 22px; width: 100%; padding: 11px; border: none; border-radius: 9px;
       background: #6ad07d; color: #0d1410; font-weight: 700; font-size: 14px; cursor: pointer;
@@ -77,6 +92,26 @@
       <span class="char-preview" id="prev-mushroom">🍄</span>
       <span>きのこ</span>
     </label>
+  </div>
+
+  <label>シェルのカラー</label>
+  <div class="shell-colors" id="shell-colors">
+    <button class="swatch" data-color="pink"   style="background:#f4a8c0" title="ピンク"></button>
+    <button class="swatch" data-color="yellow" style="background:#f8e870" title="きいろ"></button>
+    <button class="swatch" data-color="sky"    style="background:#a8d8f4" title="スカイ"></button>
+    <button class="swatch" data-color="green"  style="background:#a8e8a8" title="みどり"></button>
+    <button class="swatch" data-color="purple" style="background:#d0a8f0" title="むらさき"></button>
+    <button class="swatch" data-color="orange" style="background:#f4c070" title="オレンジ"></button>
+    <button class="swatch" data-color="white"  style="background:#f4f0ec" title="しろ"></button>
+    <button class="swatch" data-color="navy"   style="background:#7090c0" title="こん"></button>
+  </div>
+
+  <label>シェルの柄</label>
+  <div class="shell-patterns" id="shell-patterns">
+    <button class="pattern-btn" data-pattern="solid">無地</button>
+    <button class="pattern-btn" data-pattern="dots">水玉</button>
+    <button class="pattern-btn" data-pattern="stripes">ストライプ</button>
+    <button class="pattern-btn" data-pattern="check">チェック</button>
   </div>
 
   <label>名前（任意）</label>
