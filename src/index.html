@@ -114,28 +114,28 @@
     body .shell[data-shell-color="white"]  { --shell: #f4f0ec; --shell-2: #d8d4d0; }
     body .shell[data-shell-color="navy"]   { --shell: #7090c0; --shell-2: #405888; }
 
-    /* シェルの柄（background ショートハンドで上書きして確実に適用） */
+    /* シェルの柄（パターンを上層、ベースグラデーションを下層に配置） */
     .shell[data-shell-pattern="dots"] {
       background:
-        radial-gradient(circle at 35% 25%, var(--shell), var(--shell-2)),
-        radial-gradient(circle, rgba(255,255,255,.38) 3px, transparent 3px) 0 0 / 12px 12px;
+        radial-gradient(circle, rgba(255,255,255,.38) 3px, transparent 3px) 0 0 / 12px 12px,
+        radial-gradient(circle at 35% 25%, var(--shell), var(--shell-2));
     }
     .shell[data-shell-pattern="stripes"] {
       background:
-        radial-gradient(circle at 35% 25%, var(--shell), var(--shell-2)),
         repeating-linear-gradient(45deg,
           rgba(255,255,255,.20) 0px, rgba(255,255,255,.20) 3px,
-          transparent 3px, transparent 10px);
+          transparent 3px, transparent 10px),
+        radial-gradient(circle at 35% 25%, var(--shell), var(--shell-2));
     }
     .shell[data-shell-pattern="check"] {
       background:
-        radial-gradient(circle at 35% 25%, var(--shell), var(--shell-2)),
         repeating-linear-gradient(0deg,
           transparent 0px, transparent 6px,
           rgba(255,255,255,.18) 6px, rgba(255,255,255,.18) 7px),
         repeating-linear-gradient(90deg,
           transparent 0px, transparent 6px,
-          rgba(255,255,255,.18) 6px, rgba(255,255,255,.18) 7px);
+          rgba(255,255,255,.18) 6px, rgba(255,255,255,.18) 7px),
+        radial-gradient(circle at 35% 25%, var(--shell), var(--shell-2));
     }
 
     /* ステータスバー */
