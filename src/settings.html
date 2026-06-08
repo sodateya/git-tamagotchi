@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>設定 — Git Tamagotchi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif;
+      background: #1c1f24; color: #e8eaed; padding: 22px; font-size: 13px;
+    }
+    h1 { font-size: 16px; margin-bottom: 4px; }
+    p.sub { color: #9aa0a6; margin-bottom: 18px; font-size: 12px; }
+    label { display: block; margin: 14px 0 5px; font-weight: 600; }
+    input[type=text], input[type=password] {
+      width: 100%; padding: 9px 10px; border-radius: 8px;
+      border: 1px solid #3a3f47; background: #11141a; color: #fff; font-size: 13px;
+    }
+    .kinds { display: flex; gap: 10px; margin-top: 4px; }
+    .kinds label {
+      flex: 1; text-align: center; padding: 12px; border-radius: 10px;
+      border: 2px solid #3a3f47; cursor: pointer; margin: 0; font-weight: 600;
+    }
+    .kinds input { display: none; }
+    .kinds input:checked + span { color: #6ad07d; }
+    .kinds label:has(input:checked) { border-color: #6ad07d; background: #14241a; }
+    .emoji { font-size: 22px; display: block; margin-bottom: 4px; }
+    a { color: #6ab0ff; }
+    .save {
+      margin-top: 22px; width: 100%; padding: 11px; border: none; border-radius: 9px;
+      background: #6ad07d; color: #0d1410; font-weight: 700; font-size: 14px; cursor: pointer;
+    }
+    .save:active { transform: translateY(1px); }
+    .ok { color: #6ad07d; text-align: center; margin-top: 10px; height: 16px; }
+    .help { font-size: 11px; color: #9aa0a6; margin-top: 5px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <h1>Git Tamagotchi 設定</h1>
+  <p class="sub">GitHubの活動でキャラが育ちます。</p>
+
+  <label>GitHub Personal Access Token</label>
+  <input type="password" id="token" placeholder="ghp_... または github_pat_..." />
+  <p class="help">
+    必要な権限: <b>read:user</b>（fine-grained の場合は読み取り専用でOK）。<br />
+    <a href="#" id="tokenLink">トークンを発行する →</a> ／ トークンはこのPC内にのみ保存されます。
+  </p>
+
+  <label>育てる対象</label>
+  <div class="kinds">
+    <label><input type="radio" name="kind" value="pet" checked /><span class="emoji">🐣</span><span>ペット</span></label>
+    <label><input type="radio" name="kind" value="plant" /><span class="emoji">🌱</span><span>植物</span></label>
+  </div>
+
+  <label>名前（任意）</label>
+  <input type="text" id="name" placeholder="空欄ならGitHub名を使用" />
+
+  <button class="save" id="save">保存する</button>
+  <div class="ok" id="ok"></div>
+
+  <script src="settings.js"></script>
+</body>
+</html>
