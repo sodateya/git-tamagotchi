@@ -57,24 +57,40 @@ function saveState(data) {
   } catch {}
 }
 
-// ---------- 旧フォーマット（scoreBaseline）から累積スコア方式への移行 ----------
-function migrateState(careState) {
-  if (!careState || careState.accumulatedScore !== undefined) return careState;
-  const cache = loadCache();
-  let accumulatedScore = 0;
-  if (careState.scoreBaseline && cache && cache.contributions) {
-    const baseline = growth.computeScore(careState.scoreBaseline);
-    const current  = growth.computeScore(cache.contributions);
-    accumulatedScore = Math.max(0, current - baseline);
-  }
-  const migrated = {
-    ...careState,
-    accumulatedScore,
-    lastFetchedAt: new Date().toISOString(),
+// ---------- 前回フェッチ時との差分を計算 ----------
+function computeDelta(current, prev) {
+  return {
+    commit:      Math.max(0, (current.commit      || 0) - (prev.commit      || 0)),
+    pullRequest: Math.max(0, (current.pullRequest || 0) - (prev.pullRequest || 0)),
+    review:      Math.max(0, (current.review      || 0) - (prev.review      || 0)),
+    issue:       Math.max(0, (current.issue       || 0) - (prev.issue       || 0)),
   };
-  delete migrated.scoreBaseline;
-  delete migrated.prevContributions;
-  return migrated;
+}
+
+// ---------- 旧フォーマットからの移行 ----------
+// lastContributions が無い場合: スコアをリセットして現在値をベースラインに設定
+// （GitHub API の日単位集計により旧コードで二重加算が起きていたため）
+function migrateState(careState, currentContributions) {
+  const needsMigration =
+    !careState ||
+    careState.lastContributions === undefined;
+
+  if (!needsMigration) return careState;
+
+  const base = {
+    birthTime:         careState ? (careState.birthTime || new Date().toISOString()) : new Date().toISOString(),
+    hunger:            careState ? (careState.hunger  || 0) : 0,
+    thirst:            careState ? (careState.thirst  || 0) : 0,
+    poop:              careState ? (careState.poop    || 0) : 0,
+    weeds:             careState ? (careState.weeds   || 0) : 0,
+    lastUpdated:       careState ? (careState.lastUpdated || new Date().toISOString()) : new Date().toISOString(),
+    variants:          careState ? (careState.variants || {}) : {},
+    // スコアはリセット: 現在の累計をベースラインとして今後の増分のみ加算する
+    accumulatedScore:  0,
+    lastContributions: { ...currentContributions },
+    lastFetchedAt:     new Date().toISOString(),
+  };
+  return base;
 }
 
 // ---------- データ取得 → 状態を組み立てる ----------
@@ -138,47 +154,33 @@ async function refresh() {
       return;
     }
 
+    // GitHub から1年分の累計を取得
+    const raw = await fetchContributions(cfg.token);
+    saveCache(raw);
+
     let careState = loadState();
 
-    // 旧フォーマットからの移行
-    if (careState && careState.accumulatedScore === undefined) {
-      careState = migrateState(careState);
+    // lastContributions が無い場合（初回 or 旧フォーマット）はマイグレーション
+    if (!careState || careState.lastContributions === undefined) {
+      careState = migrateState(careState, raw.contributions);
       saveState(careState);
     }
 
-    const since = careState ? careState.lastFetchedAt : null;
-    const raw = await fetchContributions(cfg.token, since);
-    saveCache(raw);
+    // 前回保存した累計との差分だけスコアに加算
+    const delta = computeDelta(raw.contributions, careState.lastContributions);
+    const deltaScore  = growth.computeScore(delta);
+    const careUpdated = growth.computeCare(careState, delta);
+    careState = {
+      ...careState,
+      ...careUpdated,
+      accumulatedScore:  (careState.accumulatedScore || 0) + deltaScore,
+      lastContributions: { ...raw.contributions },
+      lastFetchedAt:     raw.fetchedAt,
+    };
 
-    const now = new Date().toISOString();
-
-    if (!careState) {
-      // 初回起動: ゼロスタートで状態を初期化
-      careState = {
-        birthTime: now,
-        accumulatedScore: 0,
-        lastFetchedAt: raw.fetchedAt,
-        hunger: 0,
-        thirst: 0,
-        poop: 0,
-        weeds: 0,
-        lastUpdated: now,
-      };
-    } else {
-      // 差分スコアを累積、お世話状態を更新
-      const deltaScore  = growth.computeScore(raw.deltaContributions);
-      const careUpdated = growth.computeCare(careState, raw.deltaContributions);
-      careState = {
-        ...careState,
-        ...careUpdated,
-        accumulatedScore: (careState.accumulatedScore || 0) + deltaScore,
-        lastFetchedAt: raw.fetchedAt,
-      };
-    }
-
-    const previewScore = (careState.accumulatedScore || 0) + growth.ageBonusScore(careState.birthTime);
+    const previewScore = careState.accumulatedScore + growth.ageBonusScore(careState.birthTime);
     const previewStage = growth.stageFor(previewScore, cfg.kind || 'pet');
-    careState = resolveVariants(careState, previewStage.current.key, raw.deltaContributions);
+    careState = resolveVariants(careState, previewStage.current.key, delta);
     saveState(careState);
 
     const state = buildState(raw, cfg, careState);
@@ -197,10 +199,13 @@ async function refresh() {
 }
 
 async function resetPet() {
+  // lastContributions を空にしておくことで、次の refresh 時にマイグレーションが走り
+  // 現在の累計をベースラインとしてスコアがゼロリセットされる
   const now = new Date().toISOString();
   saveState({
     birthTime: now,
     accumulatedScore: 0,
+    lastContributions: undefined,
     lastFetchedAt: now,
     hunger: 0,
     thirst: 0,
@@ -268,13 +273,12 @@ function createPetWindow() {
   petWindow.webContents.on('did-finish-load', () => {
     const cfg = loadConfig();
     sendToPet('config-update', cfg);
-    let careState = loadState();
-    if (careState && careState.accumulatedScore === undefined) {
-      careState = migrateState(careState);
-      saveState(careState);
-    }
     const cache = loadCache();
-    if (cache) sendToPet('state-update', buildState(cache, cfg, careState));
+    const careState = loadState();
+    // キャッシュと state が両方あれば即時描画（refresh完了前の暫定表示）
+    if (cache && careState && careState.lastContributions !== undefined) {
+      sendToPet('state-update', buildState(cache, cfg, careState));
+    }
     refresh();
   });
 }
