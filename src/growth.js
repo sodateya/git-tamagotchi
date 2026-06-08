@@ -1,26 +1,29 @@
 // growth.js — 育成ロジック（メイン/レンダラー両方から利用する純粋ロジック）
 
+// 1週間チャレンジ想定のポイント設計
+// 最小(1コミット/日): ひな  / 普通(5コミット+PR週1): こども
+// 活発(10コミット+PR週3): おとな / 超活発(レビューもフル): 達人
 const POINTS = {
-  commit: 2,
-  pullRequest: 8,
-  review: 12,
-  issue: 4,
+  commit: 5,
+  pullRequest: 20,
+  review: 30,
+  issue: 10,
 };
 
 const STAGES = {
   pet: [
-    { min: 0,    key: 'egg',     label: 'たまご',   emoji: '🥚', desc: 'まだ眠っている…コミットで起こそう' },
-    { min: 50,   key: 'baby',    label: 'ひな',     emoji: '🐣', desc: '生まれたて！世話を続けよう' },
-    { min: 200,  key: 'child',   label: 'こども',   emoji: '🐥', desc: 'すくすく成長中' },
-    { min: 600,  key: 'adult',   label: 'おとな',   emoji: '🐔', desc: '一人前のエンジニアペット' },
-    { min: 1500, key: 'master',  label: '達人',     emoji: '🦅', desc: '伝説の領域へ' },
+    { min: 0,   key: 'egg',    label: 'たまご',  emoji: '🥚', desc: '眠っている…コミットして起こそう' },
+    { min: 30,  key: 'baby',   label: 'ひな',    emoji: '🐣', desc: '生まれたて！毎日ケアしてあげよう' },
+    { min: 120, key: 'child',  label: 'こども',  emoji: '🐥', desc: 'すくすく成長中。PRも投げてみよう' },
+    { min: 350, key: 'adult',  label: 'おとな',  emoji: '🐔', desc: 'レビューもこなす一人前エンジニア' },
+    { min: 800, key: 'master', label: '達人',    emoji: '🦅', desc: '1週間でここまで来た！伝説の域' },
   ],
   plant: [
-    { min: 0,    key: 'seed',    label: 'たね',     emoji: '🌰', desc: 'まだ土の中…コミットで芽吹かせよう' },
-    { min: 50,   key: 'sprout',  label: 'め',       emoji: '🌱', desc: '芽が出た！水やりを続けよう' },
-    { min: 200,  key: 'leaf',    label: 'わかば',   emoji: '🌿', desc: '葉が茂ってきた' },
-    { min: 600,  key: 'bloom',   label: 'かいか',   emoji: '🌷', desc: '見事に開花' },
-    { min: 1500, key: 'tree',    label: '大樹',     emoji: '🌳', desc: '森の主のような大樹' },
+    { min: 0,   key: 'seed',   label: 'たね',    emoji: '🌰', desc: '土の中…コミットで芽吹かせよう' },
+    { min: 30,  key: 'sprout', label: 'め',      emoji: '🌱', desc: '芽が出た！水やり（イシュー）も忘れずに' },
+    { min: 120, key: 'leaf',   label: 'わかば',  emoji: '🌿', desc: '葉が茂ってきた。PRで枝を伸ばそう' },
+    { min: 350, key: 'bloom',  label: 'かいか',  emoji: '🌷', desc: 'レビューで丁寧に育てた証' },
+    { min: 800, key: 'tree',   label: '大樹',    emoji: '🌳', desc: '1週間でここまで！森の主へ' },
   ],
 };
 
@@ -48,12 +51,12 @@ function computeScore(c) {
   );
 }
 
-// 初回起動（誕生）からの時間経過による成長ボーナス（最大240pt）
-// コントリビューションなしでも Baby/Child 程度まで成長できる
+// 初回起動（誕生）からの時間経過による成長ボーナス（最大35pt = 約7日分）
+// 何もしなくても1週間でひな手前まで成長し、コミット1件でひなに到達できる
 function ageBonusScore(birthTime) {
   if (!birthTime) return 0;
   const hoursAlive = (Date.now() - new Date(birthTime).getTime()) / (1000 * 3600);
-  return Math.min(240, Math.floor(hoursAlive / 24 * 2));
+  return Math.min(35, Math.floor(hoursAlive / 24 * 5));
 }
 
 function stageFor(totalScore, kind) {
