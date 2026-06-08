@@ -66,7 +66,8 @@ function resolveVariants(careState, stageKey, contributions) {
 }
 
 function buildState(raw, cfg, careState) {
-  const baseScore = growth.computeScore(raw.contributions);
+  const baseline  = growth.computeScore((careState && careState.scoreBaseline) || {});
+  const baseScore = Math.max(0, growth.computeScore(raw.contributions) - baseline);
   const ageBonus  = growth.ageBonusScore(careState && careState.birthTime);
   const score     = baseScore + ageBonus;
   const stage     = growth.stageFor(score, cfg.kind || 'pet');
@@ -130,6 +131,8 @@ async function refresh() {
         lastUpdated: now,
         // 現在の累計を基準にして過去分をカウントしない
         prevContributions: { ...raw.contributions },
+        // スコアをリセット起点から計算するためのベースライン
+        scoreBaseline: { ...raw.contributions },
       };
     } else {
       // 既存状態を時間経過とコントリビューション差分で更新
@@ -138,7 +141,8 @@ async function refresh() {
     }
 
     // 現在のステージに対するバリアントを確定（未確定なら rollVariant で決める）
-    const previewScore  = growth.computeScore(raw.contributions) + growth.ageBonusScore(careState.birthTime);
+    const baseline2     = growth.computeScore(careState.scoreBaseline || {});
+    const previewScore  = Math.max(0, growth.computeScore(raw.contributions) - baseline2) + growth.ageBonusScore(careState.birthTime);
     const previewStage  = growth.stageFor(previewScore, cfg.kind || 'pet');
     careState = resolveVariants(careState, previewStage.current.key, raw.contributions);
     saveState(careState);
@@ -149,6 +153,24 @@ async function refresh() {
   } catch (err) {
     sendToPet('error', String(err.message || err));
   }
+}
+
+async function resetPet() {
+  const now = new Date().toISOString();
+  const cache = loadCache();
+  const base = cache ? { ...cache.contributions } : {};
+  saveState({
+    birthTime: now,
+    hunger: 0,
+    thirst: 0,
+    poop: 0,
+    weeds: 0,
+    lastUpdated: now,
+    prevContributions: base,
+    scoreBaseline: base,
+    variants: {},
+  });
+  await refresh();
 }
 
 function sendToPet(channel, payload) {
@@ -292,6 +314,7 @@ ipcMain.handle('save-config', (_e, cfg) => {
 });
 ipcMain.handle('refresh-now', () => refresh());
 ipcMain.handle('open-debug', () => createDebugWindow());
+ipcMain.handle('reset-pet', () => resetPet());
 ipcMain.on('open-external', (_e, url) => shell.openExternal(url));
 
 // ---------- 起動 ----------

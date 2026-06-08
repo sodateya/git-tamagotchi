@@ -116,3 +116,10 @@ $('refresh').addEventListener('click', () => {
 $('settings').addEventListener('click', () => {
   if (currentLogin) window.api.openExternal(`https://github.com/${currentLogin}`);
 });
+
+$('reset').addEventListener('click', () => {
+  if (window.confirm('たまごからやり直しますか？\n成長・お世話の記録がリセットされます。')) {
+    $('hint').textContent = 'リセット中…';
+    window.api.resetPet();
+  }
+});
