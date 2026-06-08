@@ -7,9 +7,9 @@
   <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --lcd: #c6d6b8;       /* 液晶の地色 */
-      --lcd-dark: #3a4a32;  /* ドットの濃色 */
-      --shell: #f4a8c0;     /* 筐体カラー（ペット時） */
+      --lcd: #c6d6b8;
+      --lcd-dark: #3a4a32;
+      --shell: #f4a8c0;
       --shell-2: #e87fa0;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -22,7 +22,7 @@
       -webkit-user-select: none;
     }
 
-    /* 筐体（卵型の本体） */
+    /* 筐体 */
     .shell {
       width: 200px; height: 240px;
       margin: 8px auto;
@@ -35,14 +35,14 @@
       position: relative;
       -webkit-app-region: drag;
       display: flex; flex-direction: column; align-items: center;
-      padding-top: 26px;
+      padding-top: 22px;
       transition: background .4s ease;
     }
     body.plant .shell { --shell: #9fd6a0; --shell-2: #5fae66; }
 
     /* 液晶画面 */
     .screen {
-      width: 150px; height: 132px;
+      width: 150px; height: 140px;
       background: var(--lcd);
       border-radius: 10px;
       border: 4px solid #2a2a2a;
@@ -51,7 +51,6 @@
       overflow: hidden;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-    /* 液晶のドット格子 */
     .screen::after {
       content: ''; position: absolute; inset: 0;
       background-image:
@@ -61,28 +60,49 @@
     }
 
     .char {
-      font-size: 52px; line-height: 1;
+      font-size: 44px; line-height: 1;
       filter: drop-shadow(1px 2px 0 rgba(0,0,0,.2));
       animation: bob 1.6s ease-in-out infinite;
     }
-    body.happy .char { animation: hop 0.9s ease-in-out infinite; }
-    body.hungry .char, body.sad .char { animation: sway 2.4s ease-in-out infinite; opacity: .85; }
-    @keyframes bob { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-6px);} }
-    @keyframes hop { 0%,100%{ transform: translateY(0) scale(1);} 30%{ transform: translateY(-12px) scale(1.05);} 60%{ transform: translateY(0) scale(.97);} }
-    @keyframes sway { 0%,100%{ transform: rotate(-4deg);} 50%{ transform: rotate(4deg);} }
+    body.happy  .char { animation: hop  0.9s ease-in-out infinite; }
+    body.hungry .char,
+    body.sad    .char { animation: sway 2.4s ease-in-out infinite; opacity: .85; }
+    @keyframes bob  { 0%,100%{ transform: translateY(0);}      50%{ transform: translateY(-6px);} }
+    @keyframes hop  { 0%,100%{ transform: translateY(0) scale(1);} 30%{ transform: translateY(-12px) scale(1.05);} 60%{ transform: translateY(0) scale(.97);} }
+    @keyframes sway { 0%,100%{ transform: rotate(-4deg);}      50%{ transform: rotate(4deg);} }
 
-    .face { font-size: 14px; margin-top: 6px; color: var(--lcd-dark); }
+    /* お世話インジケーター */
+    .care-row {
+      display: flex; gap: 8px; margin-top: 5px;
+    }
+    .care-item {
+      font-size: 11px;
+      display: flex; align-items: center; gap: 2px;
+      color: var(--lcd-dark);
+    }
+    .care-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #4a8a56;
+      transition: background .4s;
+      flex-shrink: 0;
+    }
+    .care-dot.warn { background: #d4a020; }
+    .care-dot.bad  { background: #d06010; }
+    .care-dot.crit { background: #cc2222; animation: pulse .8s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{ transform: scale(1); opacity:1; } 50%{ transform: scale(1.5); opacity:.6; } }
+
+    .face { font-size: 14px; margin-top: 4px; color: var(--lcd-dark); }
     .name { font-size: 12px; color: var(--lcd-dark); margin-top: 2px; }
 
-    /* ステータスバー（筐体下部） */
+    /* ステータスバー */
     .status {
-      width: 150px; margin-top: 10px; color: #4a2a36;
+      width: 150px; margin-top: 8px; color: #4a2a36;
       font-size: 10px; text-align: center;
     }
     body.plant .status { color: #234a28; }
     .row { display: flex; justify-content: space-between; padding: 0 4px; }
     .bar {
-      height: 7px; margin: 5px 0; border-radius: 4px;
+      height: 7px; margin: 4px 0; border-radius: 4px;
       background: rgba(255,255,255,.5); overflow: hidden;
       box-shadow: inset 0 1px 2px rgba(0,0,0,.2);
     }
@@ -93,7 +113,7 @@
     }
 
     /* ボタン列 */
-    .buttons { margin-top: 8px; display: flex; gap: 14px; -webkit-app-region: no-drag; }
+    .buttons { margin-top: 6px; display: flex; gap: 14px; -webkit-app-region: no-drag; }
     .btn {
       width: 26px; height: 26px; border-radius: 50%;
       border: none; cursor: pointer; font-size: 12px;
@@ -102,13 +122,19 @@
     }
     .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
 
-    .hint { font-size: 9px; color: var(--lcd-dark); opacity: .7; margin-top: 4px; }
+    .hint { font-size: 9px; color: var(--lcd-dark); opacity: .7; margin-top: 3px; }
   </style>
 </head>
 <body>
   <div class="shell">
     <div class="screen">
       <div class="char" id="char">🥚</div>
+      <div class="care-row" id="care-row">
+        <span class="care-item" id="care-hunger" title="空腹 → コミットで解消">🍗<i class="care-dot" id="dot-hunger"></i></span>
+        <span class="care-item" id="care-thirst" title="水不足 → イシューで解消">💧<i class="care-dot" id="dot-thirst"></i></span>
+        <span class="care-item" id="care-poop"   title="うんち → PRで解消">💩<i class="care-dot" id="dot-poop"></i></span>
+        <span class="care-item" id="care-weeds"  title="雑草 → レビューで解消">🌿<i class="care-dot" id="dot-weeds"></i></span>
+      </div>
       <div class="face" id="face">…</div>
       <div class="name" id="name"></div>
     </div>

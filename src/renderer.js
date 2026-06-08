@@ -3,6 +3,37 @@
 const $ = (id) => document.getElementById(id);
 let currentLogin = '';
 
+// お世話レベルに応じたドットのクラスを返す
+function careClass(val) {
+  if (val < 30) return '';
+  if (val < 60) return 'warn';
+  if (val < 80) return 'bad';
+  return 'crit';
+}
+
+function applyCare(care) {
+  if (!care) return;
+  const keys = ['hunger', 'thirst', 'poop', 'weeds'];
+  keys.forEach(key => {
+    const dot = $('dot-' + key);
+    if (dot) dot.className = 'care-dot ' + careClass(care[key] || 0);
+  });
+}
+
+// 深刻なお世話不足があればヒントに表示する（最初の1件）
+function careHint(care) {
+  if (!care) return null;
+  if ((care.hunger || 0) >= 80) return '🍗おなかペコペコ！コミットして！';
+  if ((care.thirst || 0) >= 80) return '💧カラカラ！イシューを立てよう';
+  if ((care.poop   || 0) >= 80) return '💩そろそろ限界！PRをマージしよう';
+  if ((care.weeds  || 0) >= 80) return '🌿ぼうぼう！レビューしよう';
+  if ((care.hunger || 0) >= 60) return '🍗おなかすいてきた…コミットして';
+  if ((care.thirst || 0) >= 60) return '💧のどかわいた…イシューを立てて';
+  if ((care.poop   || 0) >= 60) return '💩もよおしてきた…PRを送ろう';
+  if ((care.weeds  || 0) >= 60) return '🌿草が伸びてきた…レビューしよう';
+  return null;
+}
+
 function applyState(s) {
   if (!s) return;
   currentLogin = s.login || '';
@@ -23,7 +54,11 @@ function applyState(s) {
   } else {
     $('next').textContent = 'MAX';
   }
-  $('hint').textContent = s.stage.current.desc;
+
+  applyCare(s.care);
+
+  const hint = careHint(s.care);
+  $('hint').textContent = hint || s.stage.current.desc;
 }
 
 window.api.on('state-update', applyState);
