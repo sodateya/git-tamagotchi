@@ -38,7 +38,10 @@
       padding-top: 22px;
       transition: background .4s ease;
     }
-    body.plant .shell { --shell: #9fd6a0; --shell-2: #5fae66; }
+    body.plant    .shell { --shell: #9fd6a0; --shell-2: #5fae66; }
+    body.cat      .shell { --shell: #f5c8a0; --shell-2: #c89060; }
+    body.slime    .shell { --shell: #88ddcc; --shell-2: #44aa88; }
+    body.mushroom .shell { --shell: #e8a898; --shell-2: #c05848; }
 
     /* 液晶画面 */
     .screen {
@@ -60,10 +63,13 @@
     }
 
     .char {
-      font-size: 44px; line-height: 1;
+      width: 44px; height: 44px;
+      font-size: 44px; line-height: 44px;
+      display: flex; align-items: center; justify-content: center;
       filter: drop-shadow(1px 2px 0 rgba(0,0,0,.2));
       animation: bob 1.6s ease-in-out infinite;
     }
+    .char > svg { display: block; width: 40px; height: 40px; flex-shrink: 0; }
     body.happy  .char { animation: hop  0.9s ease-in-out infinite; }
     body.hungry .char,
     body.sad    .char { animation: sway 2.4s ease-in-out infinite; opacity: .85; }
@@ -149,6 +155,7 @@
     </div>
     <div class="hint" id="hint"></div>
   </div>
+  <script src="characters.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

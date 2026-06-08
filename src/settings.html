@@ -16,15 +16,19 @@
       width: 100%; padding: 9px 10px; border-radius: 8px;
       border: 1px solid #3a3f47; background: #11141a; color: #fff; font-size: 13px;
     }
-    .kinds { display: flex; gap: 10px; margin-top: 4px; }
+    .kinds {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 4px;
+    }
     .kinds label {
-      flex: 1; text-align: center; padding: 12px; border-radius: 10px;
+      text-align: center; padding: 10px 4px; border-radius: 10px;
       border: 2px solid #3a3f47; cursor: pointer; margin: 0; font-weight: 600;
+      font-size: 11px; line-height: 1.3;
     }
     .kinds input { display: none; }
     .kinds input:checked + span { color: #6ad07d; }
     .kinds label:has(input:checked) { border-color: #6ad07d; background: #14241a; }
-    .emoji { font-size: 22px; display: block; margin-bottom: 4px; }
+    .char-preview { font-size: 26px; display: block; margin-bottom: 4px; line-height: 1.1; }
+    .char-preview svg { width: 28px; height: 28px; display: inline-block; }
     a { color: #6ab0ff; }
     .save {
       margin-top: 22px; width: 100%; padding: 11px; border: none; border-radius: 9px;
@@ -37,7 +41,7 @@
 </head>
 <body>
   <h1>Git Tamagotchi 設定</h1>
-  <p class="sub">GitHubの活動でキャラが育ちます。</p>
+  <p class="sub">GitHubの活動でキャラが育ちます。1週間でどこまで育てられる？</p>
 
   <label>GitHub Personal Access Token</label>
   <input type="password" id="token" placeholder="ghp_... または github_pat_..." />
@@ -46,10 +50,33 @@
     <a href="#" id="tokenLink">トークンを発行する →</a> ／ トークンはこのPC内にのみ保存されます。
   </p>
 
-  <label>育てる対象</label>
+  <label>育てるキャラクター</label>
   <div class="kinds">
-    <label><input type="radio" name="kind" value="pet" checked /><span class="emoji">🐣</span><span>ペット</span></label>
-    <label><input type="radio" name="kind" value="plant" /><span class="emoji">🌱</span><span>植物</span></label>
+    <label>
+      <input type="radio" name="kind" value="pet" checked />
+      <span class="char-preview" id="prev-pet">🐣</span>
+      <span>ひよこ</span>
+    </label>
+    <label>
+      <input type="radio" name="kind" value="cat" />
+      <span class="char-preview" id="prev-cat">🐱</span>
+      <span>ねこ</span>
+    </label>
+    <label>
+      <input type="radio" name="kind" value="slime" />
+      <span class="char-preview" id="prev-slime">🟢</span>
+      <span>スライム</span>
+    </label>
+    <label>
+      <input type="radio" name="kind" value="plant" />
+      <span class="char-preview" id="prev-plant">🌱</span>
+      <span>植物</span>
+    </label>
+    <label>
+      <input type="radio" name="kind" value="mushroom" />
+      <span class="char-preview" id="prev-mushroom">🍄</span>
+      <span>きのこ</span>
+    </label>
   </div>
 
   <label>名前（任意）</label>
@@ -58,6 +85,7 @@
   <button class="save" id="save">保存する</button>
   <div class="ok" id="ok"></div>
 
+  <script src="characters.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>
