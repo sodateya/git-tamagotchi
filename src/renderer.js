@@ -34,9 +34,11 @@ function careHint(care) {
   return null;
 }
 
-function applyChar(kind, stageKey, fallbackEmoji) {
+function applyChar(kind, svgKey, stageKey, fallbackEmoji) {
   const svgs = window.CHAR_SVGS;
-  const svg = svgs && svgs[kind] && svgs[kind][stageKey];
+  const kindSvgs = svgs && svgs[kind];
+  // svgKey（バリアント付き）→ stageKey（フォールバック）→ 絵文字 の順で解決
+  const svg = kindSvgs && (kindSvgs[svgKey] || kindSvgs[stageKey]);
   const el = $('char');
   if (svg) {
     el.innerHTML = svg;
@@ -51,7 +53,7 @@ function applyState(s) {
 
   document.body.className = `${s.kind} ${s.mood.key}`;
 
-  applyChar(s.kind, s.stage.current.key, s.stage.current.emoji);
+  applyChar(s.kind, s.svgKey || s.stage.current.key, s.stage.current.key, s.stage.current.emoji);
   $('face').textContent = `${s.mood.face} ${s.mood.label}`;
   $('name').textContent = s.petName || '';
   $('stage').textContent = s.stage.current.label;

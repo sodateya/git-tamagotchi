@@ -96,6 +96,35 @@ function stageFor(totalScore, kind) {
   return { current, next, progress };
 }
 
+// 進化先バリアントを決定する（a/b/c のいずれか）
+// contributions の比率に基づき重み付けランダム
+// commit多め→a / PRレビュー多め→b / バランス→c
+function rollVariant(contributions) {
+  const c = contributions || {};
+  const commits  = c.commit || 0;
+  const prs      = (c.pullRequest || 0) + (c.review || 0);
+  const issues   = c.issue || 0;
+  const total    = commits + prs + issues;
+
+  let wA = 2, wB = 2, wC = 2; // 基本は均等
+  if (total > 0) {
+    if (commits > prs && commits > issues)   wA += 3; // コミット型
+    else if (prs > commits && prs > issues)  wB += 3; // PR/レビュー型
+    else                                      wC += 3; // バランス型
+  }
+  const roll = Math.random() * (wA + wB + wC);
+  if (roll < wA) return 'a';
+  if (roll < wA + wB) return 'b';
+  return 'c';
+}
+
+// ステージキーに variant サフィックスを付加して SVG キーを返す
+// variantA は base キーそのまま（後方互換）
+function svgKey(stageKey, variant) {
+  if (!variant || variant === 'a') return stageKey;
+  return stageKey + '_' + variant;
+}
+
 function streakAndMood(dailyCounts, todayStr) {
   const map = new Map(dailyCounts.map((d) => [d.date, d.count]));
 
@@ -178,4 +207,5 @@ function moodWithCare(baseMood, care) {
 module.exports = {
   POINTS, STAGES, MOODS, CARE_DEFS,
   computeScore, ageBonusScore, stageFor, streakAndMood, computeCare, moodWithCare,
+  rollVariant, svgKey,
 };

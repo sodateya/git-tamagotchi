@@ -52,6 +52,19 @@ function saveState(data) {
 }
 
 // ---------- データ取得 → 状態を組み立てる ----------
+
+// バリアントが未決定のステージがあれば確定してcareStateを更新する
+function resolveVariants(careState, stageKey, contributions) {
+  const variants = careState.variants || {};
+  // egg/seed/sprout/baby は variant なし（固定）
+  const branching = ['child', 'adult', 'master', 'leaf', 'bloom', 'tree'];
+  if (branching.includes(stageKey) && !variants[stageKey]) {
+    variants[stageKey] = growth.rollVariant(contributions);
+    careState.variants = variants;
+  }
+  return careState;
+}
+
 function buildState(raw, cfg, careState) {
   const baseScore = growth.computeScore(raw.contributions);
   const ageBonus  = growth.ageBonusScore(careState && careState.birthTime);
@@ -67,6 +80,11 @@ function buildState(raw, cfg, careState) {
 
   const mood = care ? growth.moodWithCare(baseMood, care) : baseMood;
 
+  // バリアント: 現在ステージのvariantを取得（なければ 'a'）
+  const variants = (careState && careState.variants) || {};
+  const currentVariant = variants[stage.current.key] || 'a';
+  const svgKey = growth.svgKey(stage.current.key, currentVariant);
+
   return {
     kind: cfg.kind || 'pet',
     petName: cfg.name || raw.user.name || raw.user.login,
@@ -75,6 +93,8 @@ function buildState(raw, cfg, careState) {
     baseScore,
     ageBonus,
     stage,
+    svgKey,
+    currentVariant,
     mood,
     streak,
     daysSince,
@@ -116,6 +136,11 @@ async function refresh() {
       const updated = growth.computeCare(careState, raw.contributions);
       careState = { ...careState, ...updated };
     }
+
+    // 現在のステージに対するバリアントを確定（未確定なら rollVariant で決める）
+    const previewScore  = growth.computeScore(raw.contributions) + growth.ageBonusScore(careState.birthTime);
+    const previewStage  = growth.stageFor(previewScore, cfg.kind || 'pet');
+    careState = resolveVariants(careState, previewStage.current.key, raw.contributions);
     saveState(careState);
 
     const state = buildState(raw, cfg, careState);
