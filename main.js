@@ -13,6 +13,10 @@ const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
 const CACHE_PATH  = path.join(CONFIG_DIR, 'cache.json');
 const STATE_PATH  = path.join(CONFIG_DIR, 'state.json');
 
+// ペットウィンドウのベースサイズ（100% = この値）
+const BASE_W = 220;
+const BASE_H = 260;
+
 let petWindow = null;
 let settingsWindow = null;
 let tray = null;
@@ -55,6 +59,15 @@ function saveState(data) {
     fs.mkdirSync(CONFIG_DIR, { recursive: true });
     fs.writeFileSync(STATE_PATH, JSON.stringify(data, null, 2), 'utf8');
   } catch {}
+}
+
+// ---------- ウィンドウサイズ・透過度を設定から反映 ----------
+function applyWindowSettings(cfg) {
+  if (!petWindow || petWindow.isDestroyed()) return;
+  const scale   = Math.max(0.5, Math.min(2.0, (cfg.windowScale   || 100) / 100));
+  const opacity = Math.max(0.2, Math.min(1.0, (cfg.windowOpacity || 100) / 100));
+  petWindow.setSize(Math.round(BASE_W * scale), Math.round(BASE_H * scale));
+  petWindow.setOpacity(opacity);
 }
 
 // ---------- 前回フェッチ時との差分を計算 ----------
@@ -272,6 +285,7 @@ function createPetWindow() {
 
   petWindow.webContents.on('did-finish-load', () => {
     const cfg = loadConfig();
+    applyWindowSettings(cfg);
     sendToPet('config-update', cfg);
     const cache = loadCache();
     const careState = loadState();
@@ -331,7 +345,7 @@ function createSettingsWindow() {
   }
   settingsWindow = new BrowserWindow({
     width: 420,
-    height: 460,
+    height: 570,
     title: '設定 — Git Tamagotchi',
     resizable: false,
     webPreferences: {
@@ -409,6 +423,7 @@ function updateTrayTitle(state) {
 ipcMain.handle('get-config', () => loadConfig());
 ipcMain.handle('save-config', (_e, cfg) => {
   saveConfig(cfg);
+  applyWindowSettings(cfg);
   sendToPet('config-update', cfg);
   refresh();
   if (tray) tray.setContextMenu(buildTrayMenu());

@@ -26,6 +26,13 @@ document.querySelectorAll('.swatch').forEach(s =>
 document.querySelectorAll('.pattern-btn').forEach(b =>
   b.addEventListener('click', () => selectPattern(b.dataset.pattern)));
 
+$('windowScale').addEventListener('input', () => {
+  $('windowScaleVal').textContent = $('windowScale').value + '%';
+});
+$('windowOpacity').addEventListener('input', () => {
+  $('windowOpacityVal').textContent = $('windowOpacity').value + '%';
+});
+
 // baby/sprout ステージのSVGをプレビューに表示
 function fillPreviews() {
   if (!window.CHAR_SVGS) return;
@@ -48,6 +55,12 @@ function fill(cfg) {
   if (radio) radio.checked = true;
   selectColor(cfg.shellColor || 'pink');
   selectPattern(cfg.shellPattern || 'solid');
+  const scale = cfg.windowScale || 100;
+  const opacity = cfg.windowOpacity || 100;
+  $('windowScale').value = scale;
+  $('windowScaleVal').textContent = scale + '%';
+  $('windowOpacity').value = opacity;
+  $('windowOpacityVal').textContent = opacity + '%';
 }
 
 fillPreviews();
@@ -66,6 +79,8 @@ $('save').addEventListener('click', async () => {
     kind: document.querySelector('input[name=kind]:checked').value,
     shellColor: selectedColor,
     shellPattern: selectedPattern,
+    windowScale: parseInt($('windowScale').value, 10),
+    windowOpacity: parseInt($('windowOpacity').value, 10),
   };
   await window.api.saveConfig(cfg);
   $('ok').textContent = '保存しました ✓ キャラに反映されます';

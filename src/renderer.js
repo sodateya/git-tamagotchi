@@ -75,6 +75,9 @@ function applyShellStyle(cfg) {
   } else {
     shell.removeAttribute('data-shell-pattern');
   }
+  // ウィンドウスケールをCSSカスタムプロパティで適用
+  const scale = (cfg.windowScale || 100) / 100;
+  document.documentElement.style.setProperty('--win-scale', scale);
 }
 
 window.api.on('config-update', applyShellStyle);

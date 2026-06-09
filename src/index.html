@@ -14,12 +14,16 @@
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
-      width: 100%; height: 100%;
+      width: 220px; height: 260px;
       background: transparent;
       overflow: hidden;
       font-family: 'DotGothic16', system-ui, sans-serif;
       user-select: none;
       -webkit-user-select: none;
+    }
+    body {
+      transform-origin: top left;
+      transform: scale(var(--win-scale, 1));
     }
 
     /* 筐体 */
