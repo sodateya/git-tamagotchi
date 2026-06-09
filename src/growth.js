@@ -72,12 +72,8 @@ function computeScore(c) {
   );
 }
 
-// 初回起動（誕生）からの時間経過による成長ボーナス（最大35pt = 約7日分）
-// 何もしなくても1週間でひな手前まで成長し、コミット1件でひなに到達できる
-function ageBonusScore(birthTime) {
-  if (!birthTime) return 0;
-  const hoursAlive = (Date.now() - new Date(birthTime).getTime()) / (1000 * 3600);
-  return Math.min(35, Math.floor(hoursAlive / 24 * 5));
+function ageBonusScore() {
+  return 0;
 }
 
 function stageFor(totalScore, kind) {
