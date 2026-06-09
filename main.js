@@ -14,8 +14,8 @@ const CACHE_PATH  = path.join(CONFIG_DIR, 'cache.json');
 const STATE_PATH  = path.join(CONFIG_DIR, 'state.json');
 
 // ペットウィンドウのベースサイズ（100% = この値）
-const BASE_W = 220;
-const BASE_H = 260;
+const BASE_W = 260;
+const BASE_H = 300;
 
 let petWindow = null;
 let settingsWindow = null;

@@ -14,7 +14,7 @@
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
-      width: 220px; height: 260px;
+      width: 260px; height: 300px;
       background: transparent;
       overflow: hidden;
       font-family: 'DotGothic16', system-ui, sans-serif;
@@ -28,7 +28,7 @@
 
     /* 筐体 */
     .shell {
-      width: 200px; height: 240px;
+      width: 240px; height: 280px;
       margin: 8px auto;
       background: radial-gradient(circle at 35% 25%, var(--shell), var(--shell-2));
       border-radius: 50% 50% 46% 46% / 56% 56% 44% 44%;
@@ -39,7 +39,7 @@
       position: relative;  /* care-alert-wrap の基準 */
       -webkit-app-region: drag;
       display: flex; flex-direction: column; align-items: center;
-      padding-top: 22px;
+      padding-top: 40px;
       transition: background .4s ease;
     }
     body.plant    .shell { --shell: #9fd6a0; --shell-2: #5fae66; }
@@ -84,7 +84,7 @@
     /* お世話アラート（スクリーン上端から降りてくる） */
     .care-alert-wrap {
       position: absolute;
-      top: 22px; left: 25px;
+      top: 40px; left: 45px;
       width: 150px; height: 20px;
       overflow: hidden;
       z-index: 10;
