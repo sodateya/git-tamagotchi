@@ -5,6 +5,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('api', {
   getConfig: () => ipcRenderer.invoke('get-config'),
   saveConfig: (cfg) => ipcRenderer.invoke('save-config', cfg),
+  applyAppearance: (cfg) => ipcRenderer.invoke('apply-appearance', cfg),
   refreshNow: () => ipcRenderer.invoke('refresh-now'),
   openExternal: (url) => ipcRenderer.send('open-external', url),
   openDebug: () => ipcRenderer.invoke('open-debug'),

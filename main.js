@@ -407,8 +407,9 @@ function createTray() {
   tray = new Tray(makeTrayIcon());
   tray.setToolTip('Git Tamagotchi');
   tray.setContextMenu(buildTrayMenu());
+  // クリックでメニューを開くだけ、ペットウィンドウは非表示にしない
   tray.on('click', () => {
-    if (petWindow) petWindow.isVisible() ? petWindow.hide() : petWindow.show();
+    if (petWindow && !petWindow.isVisible()) petWindow.show();
   });
 }
 
@@ -427,6 +428,14 @@ ipcMain.handle('save-config', (_e, cfg) => {
   sendToPet('config-update', cfg);
   refresh();
   if (tray) tray.setContextMenu(buildTrayMenu());
+  return true;
+});
+// スライダー操作時のリアルタイム反映（GitHub再フェッチなし・即時保存）
+ipcMain.handle('apply-appearance', (_e, partial) => {
+  const cfg = { ...loadConfig(), ...partial };
+  saveConfig(cfg);
+  applyWindowSettings(cfg);
+  sendToPet('config-update', cfg);
   return true;
 });
 ipcMain.handle('refresh-now', () => refresh());

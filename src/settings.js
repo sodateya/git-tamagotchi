@@ -27,10 +27,14 @@ document.querySelectorAll('.pattern-btn').forEach(b =>
   b.addEventListener('click', () => selectPattern(b.dataset.pattern)));
 
 $('windowScale').addEventListener('input', () => {
-  $('windowScaleVal').textContent = $('windowScale').value + '%';
+  const v = $('windowScale').value;
+  $('windowScaleVal').textContent = v + '%';
+  window.api.applyAppearance({ windowScale: parseInt(v, 10) });
 });
 $('windowOpacity').addEventListener('input', () => {
-  $('windowOpacityVal').textContent = $('windowOpacity').value + '%';
+  const v = $('windowOpacity').value;
+  $('windowOpacityVal').textContent = v + '%';
+  window.api.applyAppearance({ windowOpacity: parseInt(v, 10) });
 });
 
 // baby/sprout ステージのSVGをプレビューに表示
